@@ -114,12 +114,9 @@ def sample_top_k(probs: torch.Tensor, k: int) -> torch.Tensor:
     Returns:
         torch.Tensor: Sampled tokens.
     """
-    top_k_value, _ = torch.topk(probs, k, dim=-1)
-    min_value_top_k = top_k_value[..., [-1]]
-    probs *= (probs >= min_value_top_k).float()
-    probs.div_(probs.sum(dim=-1, keepdim=True))
-    next_token = multinomial(probs, num_samples=1)
-    return next_token
+    top_k_probs, top_k_indices = torch.topk(probs, k, dim=-1)
+    sampled_top_k = multinomial(top_k_probs, num_samples=1)
+    return torch.gather(top_k_indices, dim=-1, index=sampled_top_k)
 
 
 def sample_top_p(probs: torch.Tensor, p: float) -> torch.Tensor:
